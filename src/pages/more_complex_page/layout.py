@@ -406,6 +406,184 @@
 #     )
 # ])
 
+
+#carte et histogramme simple
+
+# import dash
+# from dash import dcc, html
+# import folium
+# from dash.dependencies import Input, Output
+# import pandas as pd
+# import plotly.express as px
+# import os
+# from flask import send_from_directory
+
+# # Charger les données nettoyées
+# df_cleaned = pd.read_csv('data/cleaned/cleaneddata.csv')
+
+# # Créer une nouvelle colonne pour la production totale d'énergie renouvelable
+# df_cleaned['production_totale'] = (
+#     df_cleaned['hydraulique_renouvelable'] +
+#     df_cleaned['bioenergies_renouvelable'] +
+#     df_cleaned['eolienne_renouvelable'] +
+#     df_cleaned['solaire_renouvelable'] +
+#     df_cleaned['electrique_renouvelable'] +
+#     df_cleaned['gaz_renouvelable']
+# )
+
+# # Créer un histogramme de la production totale d'énergie renouvelable
+# fig_histogram = px.histogram(
+#     df_cleaned,
+#     x='production_totale',
+#     title='Distribution de la production d\'énergie renouvelable par région',
+#     labels={'production_totale': 'Production d\'énergie renouvelable (GWh)'},
+#     nbins=20
+# )
+
+# fig_histogram.update_layout(
+#     xaxis_title="Production d'énergie renouvelable (GWh)",
+#     yaxis_title="Nombre de régions",
+#     bargap=0.2,
+#     title={'x': 0.5}  # Centrer le titre
+# )
+
+# # Créer une carte interactive avec Plotly
+# fig_map = px.scatter_mapbox(
+#     df_cleaned,
+#     lat="lat",
+#     lon="long",
+#     hover_name="nom_insee_region",
+#     title="Carte de la production d'énergie renouvelable en France",
+#     color="production_totale",
+#     mapbox_style="open-street-map",
+#     zoom=5,
+#     height=600
+# )
+
+# fig_map.update_traces(marker=dict(size=10, opacity=0.7))
+# fig_map.update_layout(
+#     mapbox=dict(
+#         center={"lat": 46.603354, "lon": 1.888334},
+#         zoom=5,
+#     ),
+#     margin={"r": 0, "t": 50, "l": 0, "b": 0}
+# )
+
+# # Route pour servir les fichiers depuis src/components
+# app = dash.Dash(__name__, external_stylesheets=[
+#     "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
+# ])
+
+# @app.server.route('/components/<path:path>')
+# def serve_static_files(path):
+#     return send_from_directory(os.path.join(os.getcwd(), 'src/components'), path)
+
+# # Fonction pour créer la carte avec Folium
+# def create_map():
+#     map_france_renouvelable = folium.Map(location=[46.603354, 1.888334], zoom_start=6)
+
+#     couleurs = {
+#         'Solaire': 'yellow',
+#         'Éolienne': 'blue',
+#         'Hydraulique': 'green',
+#         'Bioénergies': 'brown'
+#     }
+
+#     for i, row in df_cleaned.iterrows():
+#         total_renouvelable = row['production_totale']
+        
+#         energie_dominante = max(
+#             row['solaire_renouvelable'],
+#             row['eolienne_renouvelable'],
+#             row['hydraulique_renouvelable'],
+#             row['bioenergies_renouvelable'],
+#             key=lambda x: x if x > 0 else 0
+#         )
+#         energie_dominante_type = 'Solaire' if energie_dominante == row['solaire_renouvelable'] else (
+#             'Éolienne' if energie_dominante == row['eolienne_renouvelable'] else (
+#                 'Hydraulique' if energie_dominante == row['hydraulique_renouvelable'] else 'Bioénergies'
+#             )
+#         )
+
+#         folium.CircleMarker(
+#             location=[row['lat'], row['long']],
+#             radius=5 + (total_renouvelable / 1000),
+#             color=couleurs[energie_dominante_type],
+#             fill=True,
+#             fill_color=couleurs[energie_dominante_type],
+#             fill_opacity=0.6,
+#             popup=f"{row['nom_insee_region']} - {total_renouvelable} GWh"
+#         ).add_to(map_france_renouvelable)
+
+#     if not os.path.exists('src/components'):
+#         os.makedirs('src/components')
+#     map_france_renouvelable.save('src/components/map_energie.html')
+
+# # Appeler la fonction pour générer la carte au lancement
+# create_map()
+
+# # Layout principal
+# app.layout = html.Div(
+#     style={'fontFamily': 'Roboto, sans-serif', 'padding': '20px'},
+#     children=[
+#         dcc.Location(id='url', refresh=False),
+#         html.Nav([
+#             dcc.Link('Accueil', href='/'),
+#             " | ",
+#             dcc.Link('Analyse des données', href='/data-analysis'),
+#             " | ",
+#             dcc.Link('À propos', href='/about')
+#         ], style={'padding': '10px', 'font-size': '18px'}),  # Améliorer la barre de navigation
+#         html.Div(id='page-content')  # Contenu dynamique en fonction de la page
+#     ]
+# )
+
+# # Layout pour la page d'accueil avec l'image de fond et le titre
+# home_layout = html.Div(
+#     style={
+#         'fontFamily': 'Roboto, sans-serif',  # Applique la police Roboto
+#         'backgroundImage': 'url("/images/Fond.png")',  # Image d'arrière-plan
+#         'backgroundSize': 'cover',  # L'image couvre toute la page
+#         'backgroundPosition': 'center',  # Centre l'image
+#         'height': '100vh',  # Prend toute la hauteur de la fenêtre
+#         'display': 'flex',  # Utilise flexbox pour centrer le contenu
+#         'flexDirection': 'column',  # Aligne verticalement le contenu
+#         'justifyContent': 'center',  # Centre le contenu verticalement
+#         'alignItems': 'center',  # Centre le contenu horizontalement
+#         'textAlign': 'center',  # Centrer le texte
+#         'color': 'white',  # Texte en blanc pour contraste
+#         'padding': '20px'  # Espacement interne
+#     },
+#     children=[
+#         html.H1("Bienvenue sur le Dashboard des Énergies Renouvelables", style={'fontSize': '48px'})
+#     ]
+# )
+
+# # Layout pour la page d'analyse des données
+# data_analysis_layout = html.Div([
+#     html.H2("Analyse des données d'énergie renouvelable"),
+#     dcc.Graph(id='histogram', figure=fig_histogram),
+#     dcc.Graph(id='map', figure=fig_map)
+# ])
+
+# # Callbacks pour afficher les pages en fonction de l'URL
+# @app.callback(
+#     Output('page-content', 'children'),
+#     [Input('url', 'pathname')]
+# )
+# def display_page(pathname):
+#     if pathname == '/':
+#         return home_layout
+#     elif pathname == '/data-analysis':
+#         return data_analysis_layout
+#     else:
+#         return html.Div([html.H1("404"), html.P("Page non trouvée")])
+
+# # Lancer le serveur
+# if __name__ == '__main__':
+#     app.run_server(debug=True)
+
+
 import dash
 from dash import dcc, html
 import folium
@@ -418,108 +596,145 @@ from flask import send_from_directory
 # Charger les données nettoyées
 df_cleaned = pd.read_csv('data/cleaned/cleaneddata.csv')
 
-# Créer une nouvelle colonne pour la production totale d'énergie renouvelable
-df_cleaned['production_totale'] = (
-    df_cleaned['hydraulique_renouvelable'] +
-    df_cleaned['bioenergies_renouvelable'] +
-    df_cleaned['eolienne_renouvelable'] +
-    df_cleaned['solaire_renouvelable'] +
-    df_cleaned['electrique_renouvelable'] +
-    df_cleaned['gaz_renouvelable']
-)
+# Filtrer les données pour l'année 2008 et 2023
+df_2008 = df_cleaned[df_cleaned['annee'] == 2008]
+df_2023 = df_cleaned[df_cleaned['annee'] == 2023]
 
-# Créer un histogramme de la production totale d'énergie renouvelable
-fig_histogram = px.histogram(
-    df_cleaned,
-    x='production_totale',
-    title='Distribution de la production d\'énergie renouvelable par région',
-    labels={'production_totale': 'Production d\'énergie renouvelable (GWh)'},
+# Créer l'histogramme pour 2008
+fig_histogram_2008 = px.histogram(
+    df_2008,
+    x='totale_renouvelable',
+    title="Production d'énergie renouvelable par région en 2008",
+    labels={'totale_renouvelable': 'Production d\'énergie renouvelable (GWh)'},
     nbins=20
 )
 
-fig_histogram.update_layout(
+fig_histogram_2008.update_layout(
     xaxis_title="Production d'énergie renouvelable (GWh)",
     yaxis_title="Nombre de régions",
-    bargap=0.2,
-    title={'x': 0.5}  # Centrer le titre
+    bargap=0.2
 )
 
-# Créer une carte interactive avec Plotly
-fig_map = px.scatter_mapbox(
-    df_cleaned,
+# Créer l'histogramme pour 2023
+fig_histogram_2023 = px.histogram(
+    df_2023,
+    x='totale_renouvelable',
+    title="Production d'énergie renouvelable par région en 2023",
+    labels={'totale_renouvelable': 'Production d\'énergie renouvelable (GWh)'},
+    nbins=20
+)
+
+fig_histogram_2023.update_layout(
+    xaxis_title="Production d'énergie renouvelable (GWh)",
+    yaxis_title="Nombre de régions",
+    bargap=0.2
+)
+
+# Créer la carte pour 2008
+fig_map_2008 = px.scatter_mapbox(
+    df_2008,
     lat="lat",
     lon="long",
     hover_name="nom_insee_region",
-    title="Carte de la production d'énergie renouvelable en France",
-    color="production_totale",
+    title="Carte de la production d'énergie renouvelable en 2008",
+    color="totale_renouvelable",  # Colonne à utiliser pour les couleurs
     mapbox_style="open-street-map",
     zoom=5,
     height=600
 )
 
-fig_map.update_traces(marker=dict(size=10, opacity=0.7))
-fig_map.update_layout(
+fig_map_2008.update_traces(marker=dict(size=10, opacity=0.7))
+fig_map_2008.update_layout(
     mapbox=dict(
-        center={"lat": 46.603354, "lon": 1.888334},
+        center={"lat": 46.603354, "lon": 1.888334},  # Centré sur la France
         zoom=5,
     ),
     margin={"r": 0, "t": 50, "l": 0, "b": 0}
 )
 
-# Route pour servir les fichiers depuis src/components
+# Créer la carte pour 2023
+fig_map_2023 = px.scatter_mapbox(
+    df_2023,
+    lat="lat",
+    lon="long",
+    hover_name="nom_insee_region",
+    title="Carte de la production d'énergie renouvelable en 2023",
+    color="totale_renouvelable",  # Colonne à utiliser pour les couleurs
+    mapbox_style="open-street-map",
+    zoom=5,
+    height=600
+)
+
+fig_map_2023.update_traces(marker=dict(size=10, opacity=0.7))
+fig_map_2023.update_layout(
+    mapbox=dict(
+        center={"lat": 46.603354, "lon": 1.888334},  # Centré sur la France
+        zoom=5,
+    ),
+    margin={"r": 0, "t": 50, "l": 0, "b": 0}
+)
+
+# Layout principal pour le dashboard
 app = dash.Dash(__name__, external_stylesheets=[
     "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
 ])
 
-@app.server.route('/components/<path:path>')
-def serve_static_files(path):
-    return send_from_directory(os.path.join(os.getcwd(), 'src/components'), path)
+# Layout pour la page d'accueil avec l'image de fond et le titre
+home_layout = html.Div(
+    style={
+        'backgroundImage': 'url("/images/Fond.png")',  # Chemin vers l'image de fond
+        'backgroundSize': 'cover',  # L'image couvre tout l'écran
+        'height': '100vh',  # L'image couvre toute la hauteur de la page
+        'display': 'flex',
+        'alignItems': 'center',
+        'justifyContent': 'center',
+        'color': 'white',  # Couleur du texte pour bien le voir sur l'image
+        'textAlign': 'center'
+    },
+    children=[
+        html.H1("Bienvenue sur le Dashboard des Énergies Renouvelables", style={'fontSize': '48px'})
+    ]
+)
 
-# Fonction pour créer la carte avec Folium
-def create_map():
-    map_france_renouvelable = folium.Map(location=[46.603354, 1.888334], zoom_start=6)
+# Layout pour la page d'analyse des données avec les deux histogrammes et les deux cartes
+data_analysis_layout = html.Div([
+    html.H2("Analyse des données d'énergie renouvelable"),
+    
+    # Cartes pour 2008 et 2023
+    html.Div([
+        html.H3("2008 - Carte de la production"),
+        dcc.Graph(id='map_2008', figure=fig_map_2008),
+    ]),
+    html.Div([
+        html.H3("2023 - Carte de la production"),
+        dcc.Graph(id='map_2023', figure=fig_map_2023),
+    ]),
+    
+    # Histogrammes pour 2008 et 2023
+    html.Div([
+        html.H3("2008 - Histogramme"),
+        dcc.Graph(id='histogram_2008', figure=fig_histogram_2008),
+    ]),
+    html.Div([
+        html.H3("2023 - Histogramme"),
+        dcc.Graph(id='histogram_2023', figure=fig_histogram_2023),
+    ])
+])
 
-    couleurs = {
-        'Solaire': 'yellow',
-        'Éolienne': 'blue',
-        'Hydraulique': 'green',
-        'Bioénergies': 'brown'
-    }
+# Callback pour afficher la page Analyse des données
+@app.callback(
+    Output('page-content', 'children'),
+    [Input('url', 'pathname')]
+)
+def display_page(pathname):
+    if pathname == '/':
+        return home_layout
+    elif pathname == '/data-analysis':
+        return data_analysis_layout  # Afficher les deux cartes et les histogrammes ici
+    else:
+        return html.Div([html.H1("404"), html.P("Page non trouvée")])
 
-    for i, row in df_cleaned.iterrows():
-        total_renouvelable = row['production_totale']
-        
-        energie_dominante = max(
-            row['solaire_renouvelable'],
-            row['eolienne_renouvelable'],
-            row['hydraulique_renouvelable'],
-            row['bioenergies_renouvelable'],
-            key=lambda x: x if x > 0 else 0
-        )
-        energie_dominante_type = 'Solaire' if energie_dominante == row['solaire_renouvelable'] else (
-            'Éolienne' if energie_dominante == row['eolienne_renouvelable'] else (
-                'Hydraulique' if energie_dominante == row['hydraulique_renouvelable'] else 'Bioénergies'
-            )
-        )
-
-        folium.CircleMarker(
-            location=[row['lat'], row['long']],
-            radius=5 + (total_renouvelable / 1000),
-            color=couleurs[energie_dominante_type],
-            fill=True,
-            fill_color=couleurs[energie_dominante_type],
-            fill_opacity=0.6,
-            popup=f"{row['nom_insee_region']} - {total_renouvelable} GWh"
-        ).add_to(map_france_renouvelable)
-
-    if not os.path.exists('src/components'):
-        os.makedirs('src/components')
-    map_france_renouvelable.save('src/components/map_energie.html')
-
-# Appeler la fonction pour générer la carte au lancement
-create_map()
-
-# Layout principal
+# Layout principal pour le routing
 app.layout = html.Div(
     style={'fontFamily': 'Roboto, sans-serif', 'padding': '20px'},
     children=[
@@ -530,51 +745,10 @@ app.layout = html.Div(
             dcc.Link('Analyse des données', href='/data-analysis'),
             " | ",
             dcc.Link('À propos', href='/about')
-        ], style={'padding': '10px', 'font-size': '18px'}),  # Améliorer la barre de navigation
+        ], style={'padding': '10px', 'font-size': '18px'}),  # Barre de navigation
         html.Div(id='page-content')  # Contenu dynamique en fonction de la page
     ]
 )
-
-# Layout pour la page d'accueil avec l'image de fond et le titre
-home_layout = html.Div(
-    style={
-        'fontFamily': 'Roboto, sans-serif',  # Applique la police Roboto
-        'backgroundImage': 'url("/images/Fond.png")',  # Image d'arrière-plan
-        'backgroundSize': 'cover',  # L'image couvre toute la page
-        'backgroundPosition': 'center',  # Centre l'image
-        'height': '100vh',  # Prend toute la hauteur de la fenêtre
-        'display': 'flex',  # Utilise flexbox pour centrer le contenu
-        'flexDirection': 'column',  # Aligne verticalement le contenu
-        'justifyContent': 'center',  # Centre le contenu verticalement
-        'alignItems': 'center',  # Centre le contenu horizontalement
-        'textAlign': 'center',  # Centrer le texte
-        'color': 'white',  # Texte en blanc pour contraste
-        'padding': '20px'  # Espacement interne
-    },
-    children=[
-        html.H1("Bienvenue sur le Dashboard des Énergies Renouvelables", style={'fontSize': '48px'})
-    ]
-)
-
-# Layout pour la page d'analyse des données
-data_analysis_layout = html.Div([
-    html.H2("Analyse des données d'énergie renouvelable"),
-    dcc.Graph(id='histogram', figure=fig_histogram),
-    dcc.Graph(id='map', figure=fig_map)
-])
-
-# Callbacks pour afficher les pages en fonction de l'URL
-@app.callback(
-    Output('page-content', 'children'),
-    [Input('url', 'pathname')]
-)
-def display_page(pathname):
-    if pathname == '/':
-        return home_layout
-    elif pathname == '/data-analysis':
-        return data_analysis_layout
-    else:
-        return html.Div([html.H1("404"), html.P("Page non trouvée")])
 
 # Lancer le serveur
 if __name__ == '__main__':

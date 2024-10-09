@@ -17,7 +17,7 @@ layout = html.Div(
     },
     children=[
         html.H1(
-            "Bienvenue sur le Dashboard des Accidents de Vélo",
+            "Bienvenue sur le Dashboard des énergies renouvelables",
             style={
                 'fontSize': '3rem',
                 'fontWeight': '700',  # Texte en gras
@@ -26,7 +26,7 @@ layout = html.Div(
             }
         ),
         html.P(
-            "Ce dashboard présente les données des accidents de vélo en France, avec une analyse approfondie et des visualisations interactives.",
+            "Ce dashboard présente les données d'énergies renouvelables en France",
             style={
                 'fontSize': '1.5rem',
                 'lineHeight': '1.6',  # Espacement entre les lignes
